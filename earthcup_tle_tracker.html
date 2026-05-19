@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Earth Cup ChipSat TLE Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/satellite.js/4.1.3/satellite.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #f7f6f2;
+    --bg2: #ffffff;
+    --bg3: #f0efe9;
+    --border: rgba(0,0,0,0.12);
+    --border2: rgba(0,0,0,0.22);
+    --text: #1a1a18;
+    --text2: #5f5e5a;
+    --text3: #888780;
+    --accent: #185FA5;
+    --accent-bg: #E6F1FB;
+    --accent-text: #0C447C;
+    --success: #3B6D11;
+    --success-bg: #EAF3DE;
+    --warn: #BA7517;
+    --warn-bg: #FAEEDA;
+    --danger: #A32D2D;
+    --danger-bg: #FCEBEB;
+    --purple: #534AB7;
+    --purple-bg: #EEEDFE;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c;
+      --bg2: #2a2a28;
+      --bg3: #232321;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.2);
+      --text: #e8e6de;
+      --text2: #b4b2a9;
+      --text3: #888780;
+      --accent: #378ADD;
+      --accent-bg: #042C53;
+      --accent-text: #B5D4F4;
+      --success: #97C459;
+      --success-bg: #173404;
+      --warn: #EF9F27;
+      --warn-bg: #412402;
+      --danger: #E24B4A;
+      --danger-bg: #501313;
+      --purple: #AFA9EC;
+      --purple-bg: #26215C;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  header {
+    background: var(--bg2);
+    border-bottom: 0.5px solid var(--border2);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .logo {
+    width: 36px; height: 36px;
+    background: var(--accent-bg);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  header h1 { font-size: 16px; font-weight: 500; }
+  header p { font-size: 12px; color: var(--text2); }
+  .badge {
+    margin-left: auto;
+    background: var(--success-bg);
+    color: var(--success);
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    height: calc(100vh - 65px);
+    overflow: hidden;
+  }
+  .sidebar {
+    border-right: 0.5px solid var(--border);
+    overflow-y: auto;
+    background: var(--bg2);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .section {
+    border-bottom: 0.5px solid var(--border);
+    padding: 16px;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+  }
+  textarea {
+    width: 100%;
+    background: var(--bg3);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.6;
+    padding: 10px;
+    resize: vertical;
+    min-height: 100px;
+  }
+  textarea:focus { outline: none; border-color: var(--accent); }
+  textarea::placeholder { color: var(--text3); }
+  input[type=text], input[type=number], input[type=datetime-local] {
+    width: 100%;
+    background: var(--bg3);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 13px;
+    padding: 7px 10px;
+    margin-bottom: 8px;
+  }
+  input:focus { outline: none; border-color: var(--accent); }
+  label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 4px; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.88; }
+  .btn-sm {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+  .btn-outline {
+    background: transparent;
+    color: var(--text2);
+    border: 0.5px solid var(--border2);
+  }
+  .btn-outline:hover { background: var(--bg3); }
+  .btn-danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border: 0.5px solid var(--danger);
+  }
+  .row { display: flex; gap: 8px; margin-top: 8px; }
+  .tle-entry {
+    background: var(--bg3);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    position: relative;
+  }
+  .tle-entry:hover { border-color: var(--accent); }
+  .tle-entry.active { border-color: var(--accent); background: var(--accent-bg); }
+  .tle-entry .tle-epoch { font-size: 12px; font-weight: 500; color: var(--text); }
+  .tle-entry .tle-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .tle-del {
+    position: absolute; right: 8px; top: 8px;
+    background: none; border: none; cursor: pointer;
+    color: var(--text3); font-size: 14px; padding: 2px 4px;
+  }
+  .tle-del:hover { color: var(--danger); }
+  .main {
+    overflow-y: auto;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 0;
+  }
+  .tab {
+    padding: 10px 18px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text2);
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s;
+    background: none;
+    border-top: none; border-left: none; border-right: none;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 500; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  .card {
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 14px;
+    color: var(--text);
+  }
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .metric {
+    background: var(--bg3);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+  }
+  .metric-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+  .metric-value { font-size: 22px; font-weight: 500; color: var(--text); }
+  .metric-unit { font-size: 12px; color: var(--text2); }
+  .chart-wrap { position: relative; width: 100%; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    text-align: left;
+    font-size: 11px;
+    color: var(--text3);
+    font-weight: 500;
+    padding: 6px 8px;
+    border-bottom: 0.5px solid var(--border);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  td { padding: 8px 8px; border-bottom: 0.5px solid var(--border); color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg3); }
+  .pill {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .pill-green { background: var(--success-bg); color: var(--success); }
+  .pill-warn { background: var(--warn-bg); color: var(--warn); }
+  .pill-danger { background: var(--danger-bg); color: var(--danger); }
+  .pill-blue { background: var(--accent-bg); color: var(--accent-text); }
+  .pill-purple { background: var(--purple-bg); color: var(--purple); }
+  .empty-state {
+    text-align: center;
+    color: var(--text3);
+    padding: 40px 20px;
+    font-size: 13px;
+  }
+  .info-box {
+    background: var(--accent-bg);
+    border: 0.5px solid var(--accent);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--accent-text);
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+  .gs-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pass-card {
+    background: var(--bg3);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .pass-card .pass-time { font-size: 13px; font-weight: 500; }
+  .pass-card .pass-meta { font-size: 11px; color: var(--text2); margin-top: 3px; }
+  #statusMsg {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 6px;
+    min-height: 16px;
+  }
+  .residual-pos { color: var(--success); }
+  .residual-neg { color: var(--danger); }
+  .divider { height: 0.5px; background: var(--border); margin: 12px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🛸</div>
+  <div>
+    <h1>Earth Cup — ChipSat TLE Tracker</h1>
+    <p>SGP4 propagation · Pass prediction · Decay analysis · Model validation</p>
+  </div>
+  <span class="badge" id="tleBadge">0 TLEs</span>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="section">
+      <div class="section-title">Add TLE from Space-Track</div>
+      <label>TLE Lines (paste 2-line or 3-line set)</label>
+      <textarea id="tleInput" placeholder="EARTHCUP-01
+1 56789U 23001A   26120.50000000  .00012345  00000-0  12345-3 0  9990
+2 56789  97.4321 123.4567 0001234  45.6789 314.4321 15.23456789012345"></textarea>
+      <label style="margin-top:8px">Object label (optional)</label>
+      <input type="text" id="tleLabel" placeholder="e.g. Deployed +3hr">
+      <div class="row">
+        <button class="btn" onclick="addTLE()">+ Add TLE</button>
+        <button class="btn btn-outline btn-sm" onclick="loadSample()">Load sample</button>
+        <button class="btn btn-outline btn-sm" onclick="clearAll()">Clear all</button>
+      </div>
+      <div id="statusMsg"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">TLE History (<span id="tleCount">0</span>)</div>
+      <div id="tleList"><div class="empty-state">No TLEs added yet.<br>Paste from Space-Track.org above.</div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Propagation Settings</div>
+      <label>Start time (UTC)</label>
+      <input type="datetime-local" id="propStart" step="60">
+      <label>End time (UTC)</label>
+      <input type="datetime-local" id="propEnd" step="60">
+      <label>Time step (minutes)</label>
+      <input type="number" id="propStep" value="10" min="1" max="120">
+      <button class="btn" style="margin-top:8px; width:100%;" onclick="runPropagation()">Run Propagation</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Ground Station (for pass prediction)</div>
+      <div class="gs-row">
+        <div>
+          <label>Latitude (°)</label>
+          <input type="number" id="gsLat" value="35.99" step="0.01" min="-90" max="90">
+        </div>
+        <div>
+          <label>Longitude (°)</label>
+          <input type="number" id="gsLon" value="-78.90" step="0.01" min="-180" max="180">
+        </div>
+      </div>
+      <label>Elevation (m)</label>
+      <input type="number" id="gsElev" value="100" min="0">
+      <label>Min elevation angle (°)</label>
+      <input type="number" id="gsMinEl" value="10" min="0" max="90">
+      <button class="btn" style="margin-top:4px; width:100%;" onclick="predictPasses()">Predict Passes (72hr)</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Export / Import</div>
+      <div class="row">
+        <button class="btn btn-outline btn-sm" onclick="exportData()">Export JSON</button>
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">Import JSON</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('decay')">Orbit Decay</button>
+      <button class="tab" onclick="showTab('propagate')">Propagated Track</button>
+      <button class="tab" onclick="showTab('residuals')">Model Residuals</button>
+      <button class="tab" onclick="showTab('passes')">Pass Prediction</button>
+      <button class="tab" onclick="showTab('elements')">Orbital Elements</button>
+    </div>
+
+    <!-- TAB: DECAY -->
+    <div class="tab-panel active" id="tab-decay">
+      <div class="metrics" id="decayMetrics">
+        <div class="metric"><div class="metric-label">TLEs loaded</div><div class="metric-value" id="m-count">0</div></div>
+        <div class="metric"><div class="metric-label">Current altitude</div><div class="metric-value" id="m-alt">—</div><div class="metric-unit">km</div></div>
+        <div class="metric"><div class="metric-label">Decay rate</div><div class="metric-value" id="m-decay">—</div><div class="metric-unit">km/day</div></div>
+        <div class="metric"><div class="metric-label">Est. reentry</div><div class="metric-value" id="m-reentry" style="font-size:15px">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Altitude vs time — observed TLE epochs + propagated future</div>
+        <div class="info-box" id="decayInfo">
+          Add multiple TLEs from different epochs to see the observed decay curve. Propagated track appears after running propagation.
+        </div>
+        <div class="chart-wrap" style="height:280px"><canvas id="decayChart" role="img" aria-label="Altitude vs time decay chart"></canvas></div>
+      </div>
+      <div class="card" style="margin-top:0">
+        <div class="card-title">What this shows — Earth Cup race context</div>
+        <table>
+          <tr>
+            <th>Altitude band</th><th>Race event</th><th>Status</th>
+          </tr>
+          <tr>
+            <td>≈500 km</td>
+            <td>"Hello World" — first downlink beacon</td>
+            <td><span class="pill pill-blue">Watch</span></td>
+          </tr>
+          <tr>
+            <td>400–500 km</td>
+            <td>Active race — drag optimization region</td>
+            <td><span class="pill pill-green">Racing</span></td>
+          </tr>
+          <tr>
+            <td>≈300 km</td>
+            <td>Race completion threshold</td>
+            <td><span class="pill pill-warn">Near end</span></td>
+          </tr>
+          <tr>
+            <td>&lt;250 km</td>
+            <td>ChipSat expected to fail (aero heating / density)</td>
+            <td><span class="pill pill-danger">Failure zone</span></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: PROPAGATED TRACK -->
+    <div class="tab-panel" id="tab-propagate">
+      <div class="card">
+        <div class="card-title">Propagated state — latitude, longitude, altitude over time</div>
+        <div class="info-box">
+          Select a TLE from the sidebar, set propagation window, then click Run Propagation. SGP4 is used (same algorithm as Space-Track TLE generation).
+        </div>
+        <div id="propStatus" style="font-size:12px; color:var(--text2); margin-bottom:12px;"></div>
+        <div class="chart-wrap" style="height:260px"><canvas id="altTrackChart" role="img" aria-label="Altitude track over propagation window"></canvas></div>
+        <div class="divider"></div>
+        <div class="card-title" style="margin-top:4px">Propagated state table</div>
+        <div style="max-height:260px; overflow-y:auto;">
+          <table id="propTable">
+            <tr><th>UTC time</th><th>Lat (°)</th><th>Lon (°)</th><th>Alt (km)</th><th>Speed (km/s)</th></tr>
+            <tbody id="propBody"><tr><td colspan="5" style="text-align:center;color:var(--text3);padding:20px">Run propagation to see results</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: RESIDUALS -->
+    <div class="tab-panel" id="tab-residuals">
+      <div class="card">
+        <div class="card-title">Model residuals — drag & SRP validation</div>
+        <div class="info-box">
+          <strong>What this validates (no GPS needed):</strong> For each consecutive TLE pair, the prior TLE is propagated forward to the next epoch using SGP4. The difference between that prediction and the actual next TLE's position/altitude reveals errors in the drag + radiation pressure model embedded in BSTAR. Large systematic residuals = the atmospheric density model or sail attitude is off.
+        </div>
+        <div class="chart-wrap" style="height:200px"><canvas id="residChart" role="img" aria-label="Altitude residuals between consecutive TLEs"></canvas></div>
+        <div class="divider"></div>
+        <table id="residTable">
+          <tr>
+            <th>#</th><th>From epoch</th><th>To epoch</th><th>Predicted alt (km)</th><th>Actual alt (km)</th><th>Residual (km)</th><th>Δt (hr)</th><th>Meaning</th>
+          </tr>
+          <tbody id="residBody">
+            <tr><td colspan="8" style="text-align:center;color:var(--text3);padding:20px">Need ≥ 2 TLEs to compute residuals</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: PASSES -->
+    <div class="tab-panel" id="tab-passes">
+      <div class="card">
+        <div class="card-title">TinyGS ground station pass prediction</div>
+        <div class="info-box">
+          Passes are computed using the most recent TLE. Set your ground station coordinates in the sidebar (defaults to Durham, NC). Min elevation is the horizon mask — TinyGS typically works at &gt;5°.
+        </div>
+        <div id="passList"><div class="empty-state">Click "Predict Passes" in the sidebar to compute upcoming contacts.</div></div>
+      </div>
+    </div>
+
+    <!-- TAB: ELEMENTS -->
+    <div class="tab-panel" id="tab-elements">
+      <div class="card">
+        <div class="card-title">Orbital elements — all ingested TLEs</div>
+        <div style="overflow-x:auto;">
+          <table id="elemTable">
+            <tr>
+              <th>#</th><th>Label</th><th>Epoch (UTC)</th><th>Inc (°)</th><th>RAAN (°)</th><th>Ecc</th><th>ArgPeri (°)</th><th>MeanAnom (°)</th><th>RevPerDay</th><th>BSTAR</th><th>Alt (km)</th>
+            </tr>
+            <tbody id="elemBody">
+              <tr><td colspan="11" style="text-align:center;color:var(--text3);padding:20px">No TLEs loaded</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card" style="margin-top:0">
+        <div class="card-title">BSTAR drag term trend</div>
+        <div class="info-box">BSTAR encodes atmospheric drag at the TLE epoch. Increasing BSTAR over time = higher drag density (lower altitude or higher solar activity). This is the key sail performance indicator.</div>
+        <div class="chart-wrap" style="height:180px"><canvas id="bstarChart" role="img" aria-label="BSTAR drag term over time"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let tles = [];          // [{label, line1, line2, epoch, satrec}]
+let propPoints = [];    // [{time, lat, lon, alt, speed}]
+let passes = [];
+let decayChart, altTrackChart, residChart, bstarChart;
+let activeTLEIdx = -1;
+
+// ── Defaults ───────────────────────────────────────────────────────────────
+function initDefaults() {
+  const now = new Date();
+  const end = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
+  document.getElementById('propStart').value = toLocalDTInput(now);
+  document.getElementById('propEnd').value = toLocalDTInput(end);
+}
+
+function toLocalDTInput(d) {
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+}
+
+// ── TLE Parsing ────────────────────────────────────────────────────────────
+function parseTLE(raw) {
+  const lines = raw.trim().split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  let line1, line2;
+  if (lines.length >= 3) {
+    line1 = lines[1]; line2 = lines[2];
+  } else if (lines.length === 2) {
+    line1 = lines[0]; line2 = lines[1];
+  } else {
+    throw new Error('Need at least 2 TLE lines');
+  }
+  if (!line1.startsWith('1 ') || !line2.startsWith('2 '))
+    throw new Error('Lines must start with "1 " and "2 "');
+  return { line1, line2 };
+}
+
+function tleEpochToDate(line1) {
+  const epStr = line1.substring(18, 32).trim();
+  const yr = parseInt(epStr.substring(0, 2));
+  const fullYear = yr < 57 ? 2000 + yr : 1900 + yr;
+  const day = parseFloat(epStr.substring(2));
+  const d = new Date(Date.UTC(fullYear, 0, 1));
+  d.setTime(d.getTime() + (day - 1) * 86400000);
+  return d;
+}
+
+function altFromSatrec(satrec, date) {
+  const posVel = satellite.propagate(satrec, date);
+  if (!posVel || !posVel.position || posVel.position === false) return null;
+  const gmst = satellite.gstime(date);
+  const geo = satellite.eciToGeodetic(posVel.position, gmst);
+  return geo.height;  // km
+}
+
+// ── Add TLE ────────────────────────────────────────────────────────────────
+function addTLE() {
+  const raw = document.getElementById('tleInput').value;
+  const label = document.getElementById('tleLabel').value.trim();
+  const status = document.getElementById('statusMsg');
+  try {
+    const { line1, line2 } = parseTLE(raw);
+    const satrec = satellite.twoline2satrec(line1, line2);
+    if (satrec.error) throw new Error('SGP4 init error code: ' + satrec.error);
+    const epoch = tleEpochToDate(line1);
+    const alt = altFromSatrec(satrec, epoch);
+    tles.push({ label: label || 'TLE ' + (tles.length + 1), line1, line2, epoch, satrec, altAtEpoch: alt });
+    tles.sort((a, b) => a.epoch - b.epoch);
+    document.getElementById('tleInput').value = '';
+    document.getElementById('tleLabel').value = '';
+    status.textContent = '✓ TLE added — epoch ' + epoch.toUTCString().substring(5, 22);
+    status.style.color = 'var(--success)';
+    renderSidebar();
+    updateAllCharts();
+  } catch (e) {
+    status.textContent = '✗ ' + e.message;
+    status.style.color = 'var(--danger)';
+  }
+}
+
+function removeTLE(idx) {
+  tles.splice(idx, 1);
+  if (activeTLEIdx >= tles.length) activeTLEIdx = tles.length - 1;
+  renderSidebar();
+  updateAllCharts();
+}
+
+function selectTLE(idx) {
+  activeTLEIdx = idx;
+  renderSidebar();
+}
+
+// ── Sample data ────────────────────────────────────────────────────────────
+function loadSample() {
+  const samples = [
+    {
+      label: 'Deployed T+0',
+      raw: `EARTHCUP-01\n1 99001U 26050A   26120.00000000  .00010000  00000-0  10000-3 0  9991\n2 99001  97.4000 120.0000 0001000  90.0000 270.0000 15.22000000000001`
+    },
+    {
+      label: 'T+12hr',
+      raw: `EARTHCUP-01\n1 99001U 26050A   26120.50000000  .00010500  00000-0  10200-3 0  9992\n2 99001  97.4010 120.4500 0001050  90.2000 270.1000 15.22100000000002`
+    },
+    {
+      label: 'T+24hr',
+      raw: `EARTHCUP-01\n1 99001U 26050A   26121.00000000  .00011000  00000-0  10500-3 0  9993\n2 99001  97.4020 120.9000 0001100  90.4000 270.2000 15.22200000000003`
+    },
+    {
+      label: 'T+48hr',
+      raw: `EARTHCUP-01\n1 99001U 26050A   26122.00000000  .00012000  00000-0  11000-3 0  9994\n2 99001  97.4040 121.8000 0001200  90.8000 270.4000 15.22400000000004`
+    }
+  ];
+  samples.forEach(s => {
+    const { line1, line2 } = parseTLE(s.raw);
+    const satrec = satellite.twoline2satrec(line1, line2);
+    const epoch = tleEpochToDate(line1);
+    const alt = altFromSatrec(satrec, epoch);
+    tles.push({ label: s.label, line1, line2, epoch, satrec, altAtEpoch: alt });
+  });
+  tles.sort((a, b) => a.epoch - b.epoch);
+  renderSidebar();
+  updateAllCharts();
+  document.getElementById('statusMsg').textContent = '✓ 4 sample TLEs loaded';
+  document.getElementById('statusMsg').style.color = 'var(--success)';
+}
+
+function clearAll() {
+  if (!confirm('Remove all TLEs?')) return;
+  tles = []; propPoints = []; passes = [];
+  activeTLEIdx = -1;
+  renderSidebar();
+  updateAllCharts();
+  document.getElementById('propStatus').textContent = '';
+  document.getElementById('passList').innerHTML = '<div class="empty-state">No passes predicted</div>';
+}
+
+// ── Render sidebar ─────────────────────────────────────────────────────────
+function renderSidebar() {
+  const list = document.getElementById('tleList');
+  document.getElementById('tleCount').textContent = tles.length;
+  document.getElementById('tleBadge').textContent = tles.length + ' TLE' + (tles.length !== 1 ? 's' : '');
+  if (tles.length === 0) {
+    list.innerHTML = '<div class="empty-state">No TLEs added yet.</div>';
+    return;
+  }
+  list.innerHTML = tles.map((t, i) => `
+    <div class="tle-entry ${i === activeTLEIdx ? 'active' : ''}" onclick="selectTLE(${i})">
+      <button class="tle-del" onclick="event.stopPropagation();removeTLE(${i})" title="Remove">×</button>
+      <div class="tle-epoch">${t.label}</div>
+      <div class="tle-meta">
+        ${fmtDate(t.epoch)} · ${t.altAtEpoch !== null ? Math.round(t.altAtEpoch) + ' km' : 'alt err'}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Propagation ────────────────────────────────────────────────────────────
+function runPropagation() {
+  if (tles.length === 0) { alert('Add at least one TLE first.'); return; }
+  const src = activeTLEIdx >= 0 ? tles[activeTLEIdx] : tles[tles.length - 1];
+  const startStr = document.getElementById('propStart').value;
+  const endStr = document.getElementById('propEnd').value;
+  const step = parseInt(document.getElementById('propStep').value) * 60 * 1000;
+
+  const start = new Date(startStr + ':00Z');
+  const end = new Date(endStr + ':00Z');
+  if (isNaN(start) || isNaN(end) || end <= start) {
+    alert('Invalid time range.'); return;
+  }
+
+  propPoints = [];
+  for (let t = start.getTime(); t <= end.getTime(); t += step) {
+    const date = new Date(t);
+    const pv = satellite.propagate(src.satrec, date);
+    if (!pv || !pv.position || pv.position === false) continue;
+    const gmst = satellite.gstime(date);
+    const geo = satellite.eciToGeodetic(pv.position, gmst);
+    const speed = Math.sqrt(pv.velocity.x**2 + pv.velocity.y**2 + pv.velocity.z**2);
+    propPoints.push({
+      time: date,
+      lat: satellite.degreesLat(geo.latitude),
+      lon: satellite.degreesLong(geo.longitude),
+      alt: geo.height,
+      speed
+    });
+  }
+
+  document.getElementById('propStatus').textContent =
+    `Propagated ${propPoints.length} points from TLE "${src.label}" · epoch ${fmtDate(src.epoch)}`;
+  renderPropTable();
+  updateAllCharts();
+  showTab('propagate');
+}
+
+function renderPropTable() {
+  const body = document.getElementById('propBody');
+  if (propPoints.length === 0) {
+    body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3)">No data</td></tr>';
+    return;
+  }
+  body.innerHTML = propPoints.slice(0, 200).map(p => `
+    <tr>
+      <td>${fmtDate(p.time)}</td>
+      <td>${p.lat.toFixed(3)}</td>
+      <td>${p.lon.toFixed(3)}</td>
+      <td>${p.alt.toFixed(2)}</td>
+      <td>${p.speed.toFixed(4)}</td>
+    </tr>
+  `).join('');
+}
+
+// ── Pass Prediction ────────────────────────────────────────────────────────
+function predictPasses() {
+  if (tles.length === 0) { alert('Add at least one TLE first.'); return; }
+  const src = tles[tles.length - 1];
+  const gsLat = parseFloat(document.getElementById('gsLat').value) * Math.PI / 180;
+  const gsLon = parseFloat(document.getElementById('gsLon').value) * Math.PI / 180;
+  const gsAlt = parseFloat(document.getElementById('gsElev').value) / 1000;
+  const minEl = parseFloat(document.getElementById('gsMinEl').value) * Math.PI / 180;
+
+  const obsLLA = { longitude: gsLon, latitude: gsLat, height: gsAlt };
+  const obsECF = satellite.geodeticToEcf(obsLLA);
+
+  passes = [];
+  const now = new Date();
+  const end = new Date(now.getTime() + 72 * 3600 * 1000);
+  const step = 30000; // 30s
+  let inPass = false;
+  let passStart = null, passMax = -999, passMaxTime = null;
+
+  for (let t = now.getTime(); t <= end.getTime(); t += step) {
+    const date = new Date(t);
+    const pv = satellite.propagate(src.satrec, date);
+    if (!pv || !pv.position || pv.position === false) continue;
+    const gmst = satellite.gstime(date);
+    const satECF = satellite.eciToEcf(pv.position, gmst);
+    const lookAngles = satellite.ecfToLookAngles(obsLLA, satECF);
+    const el = lookAngles.elevation;
+
+    if (el >= minEl) {
+      if (!inPass) { inPass = true; passStart = date; passMax = el; passMaxTime = date; }
+      if (el > passMax) { passMax = el; passMaxTime = date; }
+    } else {
+      if (inPass) {
+        passes.push({
+          start: passStart,
+          end: date,
+          maxEl: passMax * 180 / Math.PI,
+          maxElTime: passMaxTime,
+          duration: Math.round((date - passStart) / 1000)
+        });
+        inPass = false;
+      }
+    }
+  }
+
+  renderPasses();
+  showTab('passes');
+}
+
+function renderPasses() {
+  const el = document.getElementById('passList');
+  if (passes.length === 0) {
+    el.innerHTML = '<div class="empty-state">No passes found in 72-hour window with current ground station settings.</div>';
+    return;
+  }
+  el.innerHTML = passes.map((p, i) => {
+    const quality = p.maxEl > 60 ? 'pill-green' : p.maxEl > 20 ? 'pill-blue' : 'pill-warn';
+    const qLabel = p.maxEl > 60 ? 'Excellent' : p.maxEl > 20 ? 'Good' : 'Marginal';
+    return `
+      <div class="pass-card">
+        <div style="display:flex;align-items:center;gap:8px;justify-content:space-between">
+          <div class="pass-time">Pass #${i+1} · ${fmtDate(p.start)}</div>
+          <span class="pill ${quality}">${qLabel} ${p.maxEl.toFixed(1)}°</span>
+        </div>
+        <div class="pass-meta">
+          AOS: ${fmtDate(p.start)} · LOS: ${fmtDate(p.end)} · Duration: ${p.duration}s · Max el: ${p.maxEl.toFixed(1)}° at ${fmtDate(p.maxElTime)}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Charts ─────────────────────────────────────────────────────────────────
+const COLORS = {
+  blue: '#378ADD', teal: '#1D9E75', amber: '#BA7517',
+  red: '#E24B4A', purple: '#534AB7', gray: '#888780'
+};
+
+function makeChart(id, type, data, options) {
+  const canvas = document.getElementById(id);
+  const existing = Chart.getChart(canvas);
+  if (existing) existing.destroy();
+  return new Chart(canvas, { type, data, options });
+}
+
+function updateAllCharts() {
+  updateDecayChart();
+  updateAltTrackChart();
+  updateResidChart();
+  updateBstarChart();
+  updateElemTable();
+  updateMetrics();
+}
+
+function updateMetrics() {
+  document.getElementById('m-count').textContent = tles.length;
+  if (tles.length === 0) {
+    document.getElementById('m-alt').textContent = '—';
+    document.getElementById('m-decay').textContent = '—';
+    document.getElementById('m-reentry').textContent = '—';
+    return;
+  }
+  const last = tles[tles.length - 1];
+  document.getElementById('m-alt').textContent = last.altAtEpoch !== null ? Math.round(last.altAtEpoch) : '—';
+  if (tles.length >= 2) {
+    const first = tles[0];
+    const dtDays = (last.epoch - first.epoch) / 86400000;
+    const dAlt = last.altAtEpoch - first.altAtEpoch;
+    const rate = Math.abs(dAlt / dtDays);
+    document.getElementById('m-decay').textContent = rate.toFixed(2);
+    const remaining = last.altAtEpoch - 120;
+    const daysLeft = remaining / rate;
+    const reentry = new Date(last.epoch.getTime() + daysLeft * 86400000);
+    document.getElementById('m-reentry').textContent = fmtDate(reentry).substring(0, 10);
+  } else {
+    document.getElementById('m-decay').textContent = '—';
+    document.getElementById('m-reentry').textContent = '—';
+  }
+}
+
+function updateDecayChart() {
+  const obsData = tles.map(t => ({ x: t.epoch, y: t.altAtEpoch })).filter(d => d.y !== null);
+  const futureData = propPoints.length > 0
+    ? propPoints.filter((_, i) => i % 3 === 0).map(p => ({ x: p.time, y: p.alt }))
+    : [];
+
+  const datasets = [
+    {
+      label: 'Observed (TLE)',
+      data: obsData,
+      borderColor: COLORS.blue,
+      backgroundColor: COLORS.blue + '22',
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      borderWidth: 2,
+      tension: 0.3,
+      fill: false
+    }
+  ];
+  if (futureData.length > 0) {
+    datasets.push({
+      label: 'Propagated (SGP4)',
+      data: futureData,
+      borderColor: COLORS.teal,
+      backgroundColor: COLORS.teal + '11',
+      pointRadius: 2,
+      borderWidth: 1.5,
+      borderDash: [4, 3],
+      tension: 0.2,
+      fill: false
+    });
+    // Race bands
+    datasets.push({
+      label: 'Hello World (~500km)',
+      data: futureData.length > 0 ? [{ x: futureData[0].x, y: 500 }, { x: futureData[futureData.length-1].x, y: 500 }] : [],
+      borderColor: COLORS.amber + '88',
+      pointRadius: 0,
+      borderWidth: 1,
+      borderDash: [6, 4],
+      fill: false
+    });
+    datasets.push({
+      label: 'Race end (~300km)',
+      data: futureData.length > 0 ? [{ x: futureData[0].x, y: 300 }, { x: futureData[futureData.length-1].x, y: 300 }] : [],
+      borderColor: COLORS.red + '88',
+      pointRadius: 0,
+      borderWidth: 1,
+      borderDash: [6, 4],
+      fill: false
+    });
+  }
+
+  decayChart = makeChart('decayChart', 'line', { datasets }, {
+    responsive: true, maintainAspectRatio: false,
+    parsing: false,
+    scales: {
+      x: { type: 'time', time: { tooltipFormat: 'MMM d HH:mm', unit: 'day' },
+        grid: { color: 'rgba(128,128,128,0.1)' } },
+      y: { title: { display: true, text: 'Altitude (km)', font: { size: 11 } },
+        grid: { color: 'rgba(128,128,128,0.1)' } }
+    },
+    plugins: {
+      legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12 } },
+      tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y !== undefined ? ctx.parsed.y.toFixed(1) : ''}km` } }
+    }
+  });
+  document.getElementById('decayInfo').textContent =
+    tles.length >= 2
+      ? `Showing ${tles.length} observed TLE epochs from ${fmtDate(tles[0].epoch)} to ${fmtDate(tles[tles.length-1].epoch)}.${propPoints.length > 0 ? ' Propagated track shown in teal.' : ' Run propagation to add future track.'}`
+      : 'Add multiple TLEs from different epochs to see the observed decay curve.';
+}
+
+function updateAltTrackChart() {
+  const data = propPoints.filter((_, i) => i % 2 === 0).map(p => ({ x: p.time, y: p.alt }));
+  altTrackChart = makeChart('altTrackChart', 'line', {
+    datasets: [{
+      label: 'Altitude (km)',
+      data,
+      borderColor: COLORS.teal,
+      backgroundColor: COLORS.teal + '18',
+      pointRadius: 1,
+      borderWidth: 1.5,
+      fill: true,
+      tension: 0.3
+    }]
+  }, {
+    responsive: true, maintainAspectRatio: false, parsing: false,
+    scales: {
+      x: { type: 'time', time: { tooltipFormat: 'MMM d HH:mm', unit: 'hour' }, grid: { color: 'rgba(128,128,128,0.1)' } },
+      y: { title: { display: true, text: 'Altitude (km)', font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.1)' } }
+    },
+    plugins: { legend: { display: false } }
+  });
+}
+
+function updateResidChart() {
+  if (tles.length < 2) return;
+  const residuals = computeResiduals();
+  const data = residuals.map(r => ({ x: r.toEpoch, y: r.residual }));
+  const colors = data.map(d => d.y > 0 ? COLORS.teal : COLORS.red);
+
+  residChart = makeChart('residChart', 'bar', {
+    datasets: [{
+      label: 'Altitude residual (km)',
+      data,
+      backgroundColor: colors,
+      borderColor: colors,
+      borderWidth: 0.5
+    }]
+  }, {
+    responsive: true, maintainAspectRatio: false, parsing: false,
+    scales: {
+      x: { type: 'time', time: { tooltipFormat: 'MMM d HH:mm', unit: 'day' }, grid: { color: 'rgba(128,128,128,0.1)' } },
+      y: { title: { display: true, text: 'Residual (km)', font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.1)' } }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => `Residual: ${ctx.parsed.y.toFixed(3)} km` } }
+    }
+  });
+
+  const body = document.getElementById('residBody');
+  if (residuals.length === 0) {
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3)">Need ≥2 TLEs</td></tr>';
+    return;
+  }
+  body.innerHTML = residuals.map((r, i) => {
+    const sign = r.residual >= 0 ? '+' : '';
+    const cls = Math.abs(r.residual) < 2 ? 'residual-pos' : Math.abs(r.residual) < 10 ? '' : 'residual-neg';
+    const meaning = Math.abs(r.residual) < 1 ? '✓ Good model fit'
+      : Math.abs(r.residual) < 5 ? '⚠ Moderate drag error'
+      : '✗ Large drag/SRP error';
+    return `<tr>
+      <td>${i+1}</td>
+      <td>${fmtDate(r.fromEpoch)}</td>
+      <td>${fmtDate(r.toEpoch)}</td>
+      <td>${r.predicted.toFixed(2)}</td>
+      <td>${r.actual.toFixed(2)}</td>
+      <td class="${cls}">${sign}${r.residual.toFixed(3)}</td>
+      <td>${r.dt.toFixed(1)}</td>
+      <td>${meaning}</td>
+    </tr>`;
+  }).join('');
+}
+
+function computeResiduals() {
+  const residuals = [];
+  for (let i = 0; i < tles.length - 1; i++) {
+    const src = tles[i];
+    const next = tles[i + 1];
+    const predicted = altFromSatrec(src.satrec, next.epoch);
+    const actual = next.altAtEpoch;
+    if (predicted === null || actual === null) continue;
+    residuals.push({
+      fromEpoch: src.epoch,
+      toEpoch: next.epoch,
+      predicted,
+      actual,
+      residual: actual - predicted,
+      dt: (next.epoch - src.epoch) / 3600000
+    });
+  }
+  return residuals;
+}
+
+function updateBstarChart() {
+  const data = tles.map(t => {
+    const bstar = parseBstar(t.line1);
+    return { x: t.epoch, y: bstar };
+  });
+  bstarChart = makeChart('bstarChart', 'line', {
+    datasets: [{
+      label: 'BSTAR (drag term)',
+      data,
+      borderColor: COLORS.amber,
+      backgroundColor: COLORS.amber + '22',
+      pointRadius: 5,
+      borderWidth: 2,
+      tension: 0.3,
+      fill: true
+    }]
+  }, {
+    responsive: true, maintainAspectRatio: false, parsing: false,
+    scales: {
+      x: { type: 'time', time: { tooltipFormat: 'MMM d', unit: 'day' }, grid: { color: 'rgba(128,128,128,0.1)' } },
+      y: { title: { display: true, text: 'BSTAR', font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.1)' } }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => `BSTAR: ${ctx.parsed.y.toExponential(4)}` } }
+    }
+  });
+}
+
+function parseBstar(line1) {
+  const raw = line1.substring(53, 61).trim();
+  const mantissa = parseFloat(raw.substring(0, raw.length - 2)) / 100000;
+  const exp = parseInt(raw.slice(-2));
+  return mantissa * Math.pow(10, exp);
+}
+
+function updateElemTable() {
+  const body = document.getElementById('elemBody');
+  if (tles.length === 0) {
+    body.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--text3);padding:20px">No TLEs</td></tr>';
+    return;
+  }
+  body.innerHTML = tles.map((t, i) => {
+    const s = t.satrec;
+    const revPerDay = s.no / (2 * Math.PI) * 86400;
+    const a = Math.pow(398600.4418 / (s.no * s.no), 1/3);
+    const alt = a - 6371;
+    return `<tr>
+      <td>${i+1}</td>
+      <td>${t.label}</td>
+      <td>${fmtDate(t.epoch)}</td>
+      <td>${(s.inclo * 180/Math.PI).toFixed(4)}</td>
+      <td>${(s.nodeo * 180/Math.PI).toFixed(4)}</td>
+      <td>${s.ecco.toFixed(7)}</td>
+      <td>${(s.argpo * 180/Math.PI).toFixed(4)}</td>
+      <td>${(s.mo * 180/Math.PI).toFixed(4)}</td>
+      <td>${revPerDay.toFixed(8)}</td>
+      <td>${parseBstar(t.line1).toExponential(3)}</td>
+      <td>${alt.toFixed(1)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function fmtDate(d) {
+  if (!d) return '—';
+  return d.toISOString().replace('T', ' ').substring(0, 16) + ' UTC';
+}
+
+function showTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  const idx = ['decay','propagate','residuals','passes','elements'].indexOf(id);
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+}
+
+// ── Export / Import ────────────────────────────────────────────────────────
+function exportData() {
+  const data = { version: 1, exported: new Date().toISOString(),
+    tles: tles.map(t => ({ label: t.label, line1: t.line1, line2: t.line2 })) };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'earthcup_tles_' + new Date().toISOString().substring(0,10) + '.json';
+  a.click();
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      (data.tles || []).forEach(t => {
+        const satrec = satellite.twoline2satrec(t.line1, t.line2);
+        const epoch = tleEpochToDate(t.line1);
+        const alt = altFromSatrec(satrec, epoch);
+        tles.push({ label: t.label, line1: t.line1, line2: t.line2, epoch, satrec, altAtEpoch: alt });
+      });
+      tles.sort((a, b) => a.epoch - b.epoch);
+      renderSidebar();
+      updateAllCharts();
+    } catch (err) { alert('Import error: ' + err.message); }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// Chart.js date adapter (built-in with Chart.js 4)
+// ── Chart.js time scale adapter shim ──────────────────────────────────────
+// satellite.js and Chart.js 4 are available; Chart.js 4 includes the built-in
+// time adapter via the bundled date-fns adapter when loaded as UMD.
+// We need to load the adapter separately.
+
+// ── Init ───────────────────────────────────────────────────────────────────
+initDefaults();
+</script>
+
+<!-- Load Chart.js date adapter -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-adapter-date-fns/3.0.0/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script>
+// Re-render after adapter loads to ensure time scale works
+updateAllCharts();
+</script>
+
+</body>
+</html>
