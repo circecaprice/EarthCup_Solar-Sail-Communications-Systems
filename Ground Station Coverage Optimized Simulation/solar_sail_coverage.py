@@ -31,7 +31,7 @@ warnings.filterwarnings('ignore')
 # ─────────────────────────────────────────────
 ALTITUDE_KM       = 500.0
 MIN_ELEVATION_DEG = 10.0
-SIM_DAYS          = 20
+SIM_DAYS          = 50
 TIME_STEP_SEC     = 30
 INCLINATIONS      = [0, 28.5, 45, 53, 63, 70, 80, 90, 97.4, 110, 130]
 EARTH_RADIUS_KM   = 6371.0
